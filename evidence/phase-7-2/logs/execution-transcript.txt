@@ -1,0 +1,151 @@
+
+[1m[34m==============================================================================[0m
+[1m[36mDEMONSTRATION A: WordPress 7.1.3 (Vulnerable Core Baseline)[0m
+[1m[34m==============================================================================[0m
+
+
+[1m>>> [36m[SOURCE-VERIFIED][0m 1. Staging Directory Naming Derivation (wp-admin/includes/class-wp-upgrader.php)[0m
+In WordPress 7.1.3, the working directory path is derived deterministically
+from the package filename:
+  $working_dir = $upgrade_folder . basename( basename( $package, ".tmp" ), ".zip" );
+For the tested official release package 'wordpress.zip', the staging path resolves to:
+  [31mwp-content/upgrade/wordpress/[0m
+Finding: Predictable for the tested 'wordpress.zip' package name.
+(Note: Path depends on the package archive filename rather than a hardcoded string).
+
+[1m>>> [33m[SIMULATED][0m 2. Pre-Unpack Guard File Stripping[0m
+Simulating the 7.1.3 pre-unpack cleanup routine in a unique temporary directory
+to demonstrate the underlying loop logic (unconditionally deleting all directory contents).
+Note: This is a filesystem simulation, not an active WordPress upgrade execution.
+  Initial state: mock upgrade directory contains index.php and old_file.zip.
+  State after 7.1.3 cleanup: [31mindex.php DELETED[0m (Guard file stripped).
+  Impact: Leaves directory vulnerable to web-server autoindex directory listings if not hardened.
+
+[1m>>> [33m[SIMULATED][0m 3. File Promotion Boundary with Relative Path Modeling[0m
+Simulating copy_dir() using relative path traversal to evaluate the 7.1.3 exclusion list:
+  $skip = array( "wp-content", "wp-includes/version.php" );
+Note: Models nested exclusions ('wp-includes/version.php', 'wp-content/').
+Notice wp-config.php is absent from $skip in 7.1.3.
+  [Sync] Promoted file: wp-config.php
+  [Filter] Skipping excluded path: wp-content/plugins/sample.php (matched: 'wp-content')
+  [Sync] Promoted file: wp-includes/functions.php
+  [Filter] Skipping excluded path: wp-includes/version.php (matched: 'wp-includes/version.php')
+  [Sync] Promoted file: wp-load.php
+  Result: [31mwp-config.php OVERWRITTEN[0m (7.1.3 promoted staged config).
+  Root Cause: Absence of 'wp-config.php' in copy_dir() exclusion array.
+  Nested Check: [32mwp-includes/version.php correctly skipped[0m via relative path matching.
+
+[1m>>> [36m[SOURCE-VERIFIED][0m 4. Research Context & Advisory Metadata[0m
+Advisory Metadata & Assessment Distinction:
+  The WordPress GitHub Security Advisory GHSA-4w3m-c66w-69mg
+  classifies this issue as Low severity and does not publish a CVSS score.
+
+  Wordfence subsequently assigned CVE-2026-119977 with a
+  CVSS 3.1 score of 8.1 (High), identifying CWE-367.
+
+  These ratings are source-specific and should be reported separately.
+  The behaviours demonstrated here do not independently establish
+  successful remote code execution.
+
+[1m[34m==============================================================================[0m
+[1m[36mDEMONSTRATION B: WordPress 7.1.4 (Patched Core Protections)[0m
+[1m[34m==============================================================================[0m
+
+
+[1m>>> [36m[SOURCE-VERIFIED][0m 1. Randomized Staging Directory Naming (wp-admin/includes/class-wp-upgrader.php)[0m
+WordPress 7.1.4 replaced deterministic directory derivation with get_working_dir_name():
+  return $name . "-" . wp_generate_password( 16, false );
+Example generated directory paths for 'wordpress.zip':
+  [33m[ILLUSTRATIVE][0m [32mwp-content/upgrade/wordpress-rjpYS5DyURABLa7z/[0m
+  [33m[ILLUSTRATIVE][0m [32mwp-content/upgrade/wordpress-DqC9tvRA3TIP2gpb/[0m
+  [33m[ILLUSTRATIVE][0m [32mwp-content/upgrade/wordpress-p3u5RO0TpuwTTxHq/[0m
+Note: The above samples are illustrative. In production, WordPress calls wp_generate_password(16, false).
+Security Impact: 16-character alphanumeric random suffix drastically reduces path predictability.
+
+[1m>>> [33m[SIMULATED][0m 2. Guard File Preservation & Auto-Generation[0m
+Simulating the two 7.1.4 guard-file handling cases in unique temporary directories:
+  Source logic: if ( "index.php" === $file["name"] ) continue;
+  and: if ( ! file_exists( $upgrade_folder . "index.php" ) ) { create empty index.php }
+  -- Case 2A: Existing index.php present before unpack --
+  Case 2A State: [32mindex.php PRESERVED[0m (Guard file preserved during cleanup).
+  -- Case 2B: index.php absent before unpack --
+  Case 2B State: [32mindex.php CREATED[0m (WordPress auto-generated missing guard file).
+
+[1m>>> [33m[SIMULATED][0m 3. File Promotion Exclusion with Relative Path Modeling[0m
+Simulating copy_dir() using relative path traversal to evaluate the 7.1.4 exclusion list:
+  $skip = array( "wp-content", "wp-includes/version.php", "wp-config.php" );
+  [Filter] Skipping excluded path: wp-config.php (matched: 'wp-config.php')
+  [Filter] Skipping excluded path: wp-content/plugins/sample.php (matched: 'wp-content')
+  [Sync] Promoted file: wp-includes/functions.php
+  [Filter] Skipping excluded path: wp-includes/version.php (matched: 'wp-includes/version.php')
+  [Sync] Promoted file: wp-load.php
+  Result: [32mwp-config.php PROTECTED[0m (Production config untouched; staged config skipped).
+  Verification: Legitimate production database configuration preserved across core update.
+
+[1m[34m==============================================================================[0m
+[1m[36mDEMONSTRATION C: Core Upgrade Lifecycle & Timing Walkthrough[0m
+[1m[34m==============================================================================[0m
+
+Detailed walkthrough of the WordPress core update lifecycle pipeline based on Phase 5 telemetry:
+
+  [Stage 1: Preparation]  --> WordPress downloads update package, verifies signatures.
+  [Stage 2: Directory]    --> Staging directory created in wp-content/upgrade/.
+  [Stage 3: Extraction]   --> Package extracted; setup-config.php appears on disk (+700–800ms).
+  [Stage 4: File Sync]    --> copy_dir() syncs files into production root.
+  [Stage 5: Cleanup]      --> Staging directory deleted; update finalized.
+
+Empirical Timing Telemetry [34m[HISTORICAL][0m:
+  * WordPress 7.1.3: [33m12,330.89 ms (~12.33 seconds)[0m
+  * WordPress 7.1.4: [32m11,321.29 ms (~11.32 seconds)[0m
+
+[33mEnvironmental Disclaimer:[0m
+  These timing measurements represent HISTORICAL data recorded during Phase 5 instrumentation
+  in this specific local Docker research environment on macOS (Apple Silicon ARM64, Colima/VZ
+  virtualization, 9p/virtiofs filesystem bridge). Staging lifespans on bare-metal production servers,
+  high-speed NVMe drives, or network-attached storage may differ substantially and do not constitute
+  a fixed or guaranteed attack window.
+
+[1m[34m==============================================================================[0m
+[1m[36mDEMONSTRATION D: Server-Level Hardening Assessment[0m
+[1m[34m==============================================================================[0m
+
+
+[1m>>> [32m[LIVE][0m 1. Active Apache Configuration Verification[0m
+Verifying active Apache configuration tree via container runtime...
+  [32m✔ Verified:[0m /etc/apache2/conf-enabled/upgrade-hardening.conf is actively loaded.
+
+[1m>>> [32m[LIVE][0m 2. Live Assertion Test on Hardened Apache (127.0.0.1:8081)[0m
+Deploying temporary probe files into vulnerable container filesystem to test live HTTP perimeter...
+  Directory Request (/wp-content/upgrade/):       HTTP 403
+  Static Probe Request (/probe.txt):             HTTP 403
+  PHP Probe Request (/probe.php):                HTTP 403
+  Normal Site Request (/):                       HTTP 200
+  [32m✔ All live Apache hardening assertions passed: HTTP 403 enforced, site root 200 OK.[0m
+
+[1m>>> [36m[SOURCE-VERIFIED][0m 3. Test Scope & Defense-in-Depth Boundary[0m
+Scope & Defense-in-Depth Context:
+  These live tests prove that the tested HTTP paths (/wp-content/upgrade/, /probe.txt, /probe.php)
+  are blocked under this specific web-server configuration. They provide perimeter defense-in-depth
+  by denying direct HTTP access to the staging directory. They do not prove that the underlying
+  application-level weakness is universally mitigated across all web servers or hosting architectures.
+
+[1m>>> [34m[HISTORICAL][0m 4. Nginx 1.31+ Hardening Directive[0m
+Nginx configuration verified in Phase 6 (tested in disposable container):
+  location ^~ /wp-content/upgrade/ {
+      deny all;
+      autoindex off;
+      return 403;
+  }
+  Status: Historical verification confirmed HTTP 403 for directory, static, and PHP probes.
+
+[1m>>> [35m[STATIC ANALYSIS][0m 5. OpenLiteSpeed Security Directive Review[0m
+OpenLiteSpeed configuration analyzed via syntax and directive review:
+  context /wp-content/upgrade/ {
+      type NULL
+      accessible no
+  }
+  Status: Configuration static analysis only. Not runtime validated in container environment.
+
+[1m>>> [34m[HISTORICAL][0m 6. Core Update Compatibility Verification[0m
+Status: Legitimate WP-CLI core updates were verified in Phase 6 to complete successfully while
+the server restriction was active, as WordPress relies strictly on local filesystem I/O (WP_Filesystem).
