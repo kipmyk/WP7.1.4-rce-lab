@@ -1,0 +1,34 @@
+================================================================================
+   WORDPRESS 7.1.3 vs 7.1.4 UPGRADE-WINDOW DEMONSTRATION [WATERMARK: @mike.co.ke]
+================================================================================
+
+[ DEMO A: WORDPRESS 7.1.3 VULNERABLE CORE BEHAVIOR ]
+  * Staging Path Derivation: Deterministic -> wp-content/upgrade/wordpress/
+  * Guard File Handling:     index.php DELETED by clean_working_dir()
+  * File Promotion Boundary: wp-config.php OVERWRITTEN by copy_dir()
+  * Observation Status:      CONFIRMED SOURCE BEHAVIOR
+
+[ DEMO B: WORDPRESS 7.1.4 PATCHED CORE PROTECTIONS ]
+  * Staging Path Derivation: Randomized -> wp-content/upgrade/wordpress-weIdh9kF3Kd71Nkj/
+  * Guard File Handling:     index.php PRESERVED (auto-generated if missing)
+  * File Promotion Boundary: wp-config.php EXCLUDED by copy_dir()
+  * Observation Status:      CONFIRMED SOURCE BEHAVIOR
+
+[ DEMO C: UPGRADE LIFECYCLE & TIMING WALKTHROUGH ]
+  * Stage 1: Preparation & Signature Verification
+  * Stage 2: Staging Directory Creation (+0.0s)
+  * Stage 3: Package Extraction (setup-config.php appears at +0.7-0.8s)
+  * Stage 4: File Synchronization into Production Root
+  * Stage 5: Working Directory Purge & Finalization
+  * Measured Timings: 7.1.3: ~12.33s | 7.1.4: ~11.32s (macOS Docker lab environment)
+
+[ DEMO D: SERVER-LEVEL HARDENING ASSESSMENT ]
+  * Apache 2.4.69 (Tested):      Require all denied -> HTTP 403 Forbidden
+  * Nginx 1.31.8 (Tested):       location ^~ /wp-content/upgrade/ -> HTTP 403 Forbidden
+  * OpenLiteSpeed (Analyzed):    context type NULL / accessible no -> Rule-based 403
+  * WP-CLI Core Update:          COMPLETED SUCCESSFULLY (Local I/O unaffected)
+
+================================================================================
+  ACCURACY NOTICE: Research demonstration only. Full RCE was NOT reproduced.
+================================================================================
+
