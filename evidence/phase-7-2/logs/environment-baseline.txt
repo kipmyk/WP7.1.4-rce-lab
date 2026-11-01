@@ -1,0 +1,79 @@
+==============================================================================
+WordPress Security Lab: Environment Baseline Log
+Timestamp: 2026-11-01 06:51:37 UTC
+Host OS: Darwin 27.0.0 arm64
+==============================================================================
+
+--- Docker Containers ---
+NAMES          IMAGE                     STATUS       PORTS
+wp_vuln_app    wordpress:php8.2-apache   Up 2 hours   127.0.0.1:8081->80/tcp
+wp_patch_app   wordpress:php8.2-apache   Up 2 hours   127.0.0.1:8082->80/tcp
+wp_patch_db    mariadb:10.11             Up 2 hours   3306/tcp
+wp_vuln_db     mariadb:10.11             Up 2 hours   3306/tcp
+
+--- WordPress 7.1.3 Baseline Verification (wp_vuln_app) ---
+7.1.3
+http://127.0.0.1:8081
+
+--- WordPress 7.1.4 Baseline Verification (wp_patch_app) ---
+7.1.4
+http://127.0.0.1:8082
+
+--- Active Apache Hardening Verification (Loaded Configuration Tree) ---
+    (222) /etc/apache2/conf-enabled/upgrade-hardening.conf
+Syntax Check: Syntax OK
+
+--- Active Apache Hardening Directive File Content ---
+# ==============================================================================
+# Apache 2.4+ Hardening Directive: WordPress Upgrade Directory
+# Target: /wp-content/upgrade/
+# ==============================================================================
+#
+# Context: VirtualHost or Main Server Configuration (Recommended)
+# Alternatively: Placed in web root .htaccess via mod_rewrite / location match
+#
+# Operational Rationale:
+# WordPress core, theme, and plugin update operations utilize local server-side
+# filesystem APIs (WP_Filesystem) to extract, stage, and copy upgrade files.
+# At no point in a legitimate update does a client browser or external visitor
+# need to request files from /wp-content/upgrade/ over HTTP.
+#
+# ==============================================================================
+
+# Option A: Server / VirtualHost Directory Block (Recommended)
+<Directory "/var/www/html/wp-content/upgrade">
+    # 1. Deny all direct HTTP requests (returns 403 Forbidden)
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+
+    # 2. Disable directory listing explicitly
+    Options -Indexes
+
+    # 3. Prevent PHP execution if access controls are misconfigured or bypassed
+    <FilesMatch "(?i)\.(php|php[0-9]?|phtml|phar|inc)$">
+        <IfModule mod_authz_core.c>
+            Require all denied
+        </IfModule>
+        <IfModule mod_php.c>
+            php_flag engine off
+        </IfModule>
+        SetHandler none
+    </FilesMatch>
+</Directory>
+
+# Option B: Root .htaccess Directive (For shared hosting without vhost access)
+# Placed inside /var/www/html/.htaccess before the standard WordPress rewrite block:
+#
+# <IfModule mod_rewrite.c>
+# RewriteEngine On
+# RewriteRule ^wp-content/upgrade/ - [F,L]
+# </IfModule>
+
+--- Network & Port Binding Check ---
+tcp4       0      0  127.0.0.1.8082         *.*                    LISTEN     
+tcp4       0      0  127.0.0.1.8081         *.*                    LISTEN     
