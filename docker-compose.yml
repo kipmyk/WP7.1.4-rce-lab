@@ -1,0 +1,78 @@
+services:
+  # Vulnerable WordPress 7.1.3 Environment
+  wp-vulnerable-db:
+    image: mariadb:10.11
+    container_name: wp_vuln_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: vuln_root_secret_pass
+      MYSQL_DATABASE: wp_vulnerable
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: vuln_user_secret_pass
+    volumes:
+      - vuln_db_data:/var/lib/mysql
+    networks:
+      - vuln_net
+
+  wp-vulnerable:
+    image: wordpress:php8.2-apache
+    container_name: wp_vuln_app
+    restart: unless-stopped
+    depends_on:
+      - wp-vulnerable-db
+    ports:
+      - "127.0.0.1:8081:80"
+    environment:
+      WORDPRESS_DB_HOST: wp-vulnerable-db:3306
+      WORDPRESS_DB_NAME: wp_vulnerable
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: vuln_user_secret_pass
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./vulnerable/html:/var/www/html
+    networks:
+      - vuln_net
+
+  # Patched WordPress 7.1.4 Environment
+  wp-patched-db:
+    image: mariadb:10.11
+    container_name: wp_patch_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: patch_root_secret_pass
+      MYSQL_DATABASE: wp_patched
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: patch_user_secret_pass
+    volumes:
+      - patch_db_data:/var/lib/mysql
+    networks:
+      - patch_net
+
+  wp-patched:
+    image: wordpress:php8.2-apache
+    container_name: wp_patch_app
+    restart: unless-stopped
+    depends_on:
+      - wp-patched-db
+    ports:
+      - "127.0.0.1:8082:80"
+    environment:
+      WORDPRESS_DB_HOST: wp-patched-db:3306
+      WORDPRESS_DB_NAME: wp_patched
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: patch_user_secret_pass
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - ./patched/html:/var/www/html
+    networks:
+      - patch_net
+
+volumes:
+  vuln_db_data:
+  patch_db_data:
+
+networks:
+  vuln_net:
+    internal: false
+  patch_net:
+    internal: false
