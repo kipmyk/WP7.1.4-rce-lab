@@ -64,7 +64,8 @@
 | **51** | Repository Governance | `5cd95ce` | `docs: add project license` | `LICENSE` |
 | **52** | Repository Governance | `bf6ae89` | `docs: add project README and research overview` | `README.md` |
 | **53** | Repository Governance | `e757475` | `docs: add chronological Git commit audit` | `docs/git-commit-audit.md` |
-| **54** | Repository Governance | `pending` | `docs: finalize audit manifest with commit hash` | `docs/git-commit-audit.md` |
+| **54** | Repository Governance | `c5af06b` | `docs: finalize audit manifest with commit hash` | `docs/git-commit-audit.md` |
+| **55** | Repository Documentation | `20668de` | `docs: add step-by-step replication guide for all research phases to README` | `README.md` |
 
 ---
 
