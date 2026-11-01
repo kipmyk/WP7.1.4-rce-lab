@@ -1,0 +1,12 @@
+[Sun Nov 01 05:50:03.513352 2026] [mpm_prefork:notice] [pid 1:tid 1] AH00171: Graceful restart requested, doing restart
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.19.0.3. Set the 'ServerName' directive globally to suppress this message
+[Sun Nov 01 05:50:03.573386 2026] [mpm_prefork:notice] [pid 1:tid 1] AH00163: Apache/2.4.69 (Debian) PHP/8.2.35 configured -- resuming normal operations
+[Sun Nov 01 05:50:03.573404 2026] [core:notice] [pid 1:tid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Sun Nov 01 05:51:18.047524 2026] [authz_core:error] [pid 174:tid 174] [client 172.19.0.1:37022] AH01630: client denied by server configuration: /var/www/html/wp-content/upgrade/
+172.19.0.1 - - [01/Nov/2026:05:51:18 +0000] "GET /wp-content/upgrade/ HTTP/1.1" 403 477 "-" "curl/8.9.1"
+[Sun Nov 01 05:51:18.074708 2026] [authz_core:error] [pid 175:tid 175] [client 172.19.0.1:37038] AH01630: client denied by server configuration: /var/www/html/wp-content/upgrade/probe.txt
+172.19.0.1 - - [01/Nov/2026:05:51:18 +0000] "GET /wp-content/upgrade/probe.txt HTTP/1.1" 403 477 "-" "curl/8.9.1"
+[Sun Nov 01 05:51:18.104696 2026] [authz_core:error] [pid 176:tid 176] [client 172.19.0.1:37052] AH01630: client denied by server configuration: /var/www/html/wp-content/upgrade/probe.php
+172.19.0.1 - - [01/Nov/2026:05:51:18 +0000] "GET /wp-content/upgrade/probe.php HTTP/1.1" 403 477 "-" "curl/8.9.1"
+172.19.0.1 - - [01/Nov/2026:05:51:18 +0000] "HEAD / HTTP/1.1" 200 234 "-" "curl/8.9.1"
+172.19.0.1 - - [01/Nov/2026:05:51:18 +0000] "HEAD /wp-admin/ HTTP/1.1" 302 406 "-" "curl/8.9.1"
