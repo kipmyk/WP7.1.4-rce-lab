@@ -1,0 +1,5 @@
+NAMES          STATUS              PORTS                    NETWORKS
+wp_vuln_app    Up About a minute   127.0.0.1:8081->80/tcp   wp714-rce-lab_vuln_net
+wp_patch_app   Up About a minute   127.0.0.1:8082->80/tcp   wp714-rce-lab_patch_net
+wp_patch_db    Up About a minute   3306/tcp                 wp714-rce-lab_patch_net
+wp_vuln_db     Up About a minute   3306/tcp                 wp714-rce-lab_vuln_net
