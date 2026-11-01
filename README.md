@@ -97,51 +97,103 @@ The lab runs as four isolated containers bound strictly to localhost loopback in
 
 ---
 
-## 5. Research Phases & Documentation
+## 5. Research Phases & Documentation Index
 
-| Phase | Title | Key Artifacts & Reports |
+| Phase | Title | Primary Reports & Evidence Artifacts |
 | :--- | :--- | :--- |
-| **Phase 1** | Lab Environment Setup | [`docker-compose.yml`](docker-compose.yml), [`evidence/checksums.txt`](evidence/checksums.txt) |
+| **Phase 1** | Lab Foundation & Setup | [`docker-compose.yml`](docker-compose.yml), [`evidence/checksums.txt`](evidence/checksums.txt), [`evidence/docker_containers.txt`](evidence/docker_containers.txt) |
 | **Phase 2** | Advisory Investigation | [`docs/vulnerability-analysis.md`](docs/vulnerability-analysis.md), [`evidence/official-references.md`](evidence/official-references.md) |
-| **Phase 3** | Source-Code Audit | [`docs/patch-analysis.md`](docs/patch-analysis.md), [`evidence/security-relevant-diff.md`](evidence/security-relevant-diff.md) |
-| **Phase 4** | Controlled Property Testing | [`docs/phase-4-test-results.md`](docs/phase-4-test-results.md), [`tests/test-plan.md`](tests/test-plan.md) |
-| **Phase 5** | Lifecycle Validation & Timing | [`docs/phase-5-validation-report.md`](docs/phase-5-validation-report.md), [`tests/observe_upgrade_lifecycle.php`](tests/observe_upgrade_lifecycle.php) |
-| **Phase 6** | Web Server Hardening Assessment | [`docs/phase-6-hardening-assessment.md`](docs/phase-6-hardening-assessment.md), [`configs/`](configs/) |
-| **Phase 7** | Demonstration & Dashboard | [`demo/run_demo.sh`](demo/run_demo.sh), [`demo/index.html`](demo/index.html), [`docs/phase-7-demo-script.md`](docs/phase-7-demo-script.md) |
-| **Phase 7.2** | Evidence Package Capture | [`docs/phase-7-2-evidence-capture-report.md`](docs/phase-7-2-evidence-capture-report.md), [`evidence/phase-7-2/`](evidence/phase-7-2/) |
+| **Phase 3** | Source-Code Audit | [`docs/patch-analysis.md`](docs/patch-analysis.md), [`evidence/security-relevant-diff.md`](evidence/security-relevant-diff.md), [`evidence/class-wp-upgrader.diff`](evidence/class-wp-upgrader.diff) |
+| **Phase 4** | Controlled Property Testing | [`docs/phase-4-test-results.md`](docs/phase-4-test-results.md), [`tests/test-plan.md`](tests/test-plan.md), [`evidence/phase-4-test-results/`](evidence/phase-4-test-results/) |
+| **Phase 5** | Lifecycle Validation & Timing | [`docs/phase-5-validation-report.md`](docs/phase-5-validation-report.md), [`tests/observe_upgrade_lifecycle.php`](tests/observe_upgrade_lifecycle.php), [`evidence/phase-5/`](evidence/phase-5/) |
+| **Phase 6** | Web Server Hardening Assessment | [`docs/phase-6-hardening-assessment.md`](docs/phase-6-hardening-assessment.md), [`docs/phase-6-evidence-limitations.md`](docs/phase-6-evidence-limitations.md), [`configs/`](configs/) |
+| **Phase 7** | Demonstration Tooling | [`demo/run_demo.sh`](demo/run_demo.sh), [`demo/index.html`](demo/index.html), [`docs/phase-7-demo-script.md`](docs/phase-7-demo-script.md), [`docs/phase-7-demonstration-guide.md`](docs/phase-7-demonstration-guide.md) |
+| **Phase 7.2** | Evidence Package Capture | [`docs/phase-7-2-evidence-capture-report.md`](docs/phase-7-2-evidence-capture-report.md), [`evidence/phase-7-2/evidence-index.md`](evidence/phase-7-2/evidence-index.md) |
 | **Phase 7.3** | Accuracy & Safety Corrections | [`docs/phase-7-3-correction-report.md`](docs/phase-7-3-correction-report.md) |
 
 ---
 
-## 6. How to Run the Demonstration
+## 6. Step-by-Step Research Replication Guide (All Phases)
 
-### Prerequisites
-* Docker & Docker Compose
-* Bash 4+
-* `curl`
+Follow these steps to replicate, verify, and explore the entire research pipeline:
 
-### Provision Containers
+### Step 1: Lab Provisioning & Baseline Verification (Phase 1)
+1. Start the isolated Docker lab:
+   ```bash
+   docker compose up -d
+   ```
+2. Verify container state and port bindings:
+   ```bash
+   docker compose ps
+   curl -I http://127.0.0.1:8081/   # WordPress 7.1.3 (HTTP 200)
+   curl -I http://127.0.0.1:8082/   # WordPress 7.1.4 (HTTP 200)
+   ```
+3. Inspect baseline installation logs:
+   * View [`evidence/docker_containers.txt`](evidence/docker_containers.txt) and [`evidence/checksums.txt`](evidence/checksums.txt).
+
+### Step 2: Advisory Audit & Source-Code Comparison (Phases 2 & 3)
+1. Review advisory references and severity classifications in [`evidence/official-references.md`](evidence/official-references.md).
+2. Inspect the upstream core patches:
+   ```bash
+   cat evidence/class-wp-upgrader.diff
+   cat evidence/update-core.diff
+   ```
+3. Read the detailed source-level audit in [`docs/patch-analysis.md`](docs/patch-analysis.md) and [`docs/vulnerability-analysis.md`](docs/vulnerability-analysis.md).
+
+### Step 3: Executing Controlled Property Tests (Phase 4)
+Run the isolated PHP test scripts to evaluate security properties:
 ```bash
-docker compose up -d
+php tests/test_guard_preservation.php             # Compares guard-file handling
+php tests/test_staging_path_predictability.php     # Evaluates 7.1.3 vs 7.1.4 path derivation
+php tests/test_wp_config_exclusion.php             # Validates wp-config.php copy exclusion rule
+php tests/test_temporary_cleanup.php               # Demonstrates pre-unpack cleanup loops
 ```
+* Compare results with the documented findings in [`docs/phase-4-test-results.md`](docs/phase-4-test-results.md).
 
-### Run Automated Walkthrough Harness
-```bash
-# Execute complete sequential demonstration (Modules A through D):
-./demo/run_demo.sh --all
+### Step 4: Upgrade Lifecycle & Timing Telemetry (Phase 5)
+1. Inspect the non-invasive lifecycle observer script [`tests/observe_upgrade_lifecycle.php`](tests/observe_upgrade_lifecycle.php).
+2. Review empirical timing telemetry collected during Phase 5 testing:
+   ```bash
+   cat evidence/phase-5/timing-results/713-upgrade-lifecycle.json
+   cat evidence/phase-5/timing-results/714-upgrade-lifecycle.json
+   ```
+3. Read the lifecycle analysis and timing window assessment in [`docs/phase-5-validation-report.md`](docs/phase-5-validation-report.md).
 
-# Or run individual modules:
-./demo/run_demo.sh --demo-a   # Demonstration A: 7.1.3 baseline & relative copy simulation
-./demo/run_demo.sh --demo-b   # Demonstration B: 7.1.4 protections & relative copy exclusion
-./demo/run_demo.sh --demo-c   # Demonstration C: Upgrade lifecycle walkthrough & timing
-./demo/run_demo.sh --demo-d   # Demonstration D: Apache live configuration check & HTTP 403 assertions
-```
+### Step 5: Web Server Hardening Assessment (Phase 6)
+1. Inspect defense-in-depth configuration directives:
+   * Apache: [`configs/apache/upgrade-directory-hardening.conf`](configs/apache/upgrade-directory-hardening.conf)
+   * Nginx: [`configs/nginx/upgrade-directory-hardening.conf`](configs/nginx/upgrade-directory-hardening.conf)
+   * OpenLiteSpeed: [`configs/openlitespeed/upgrade-directory-hardening.conf`](configs/openlitespeed/upgrade-directory-hardening.conf)
+2. Review runtime validation results and compatibility checks in [`docs/phase-6-hardening-assessment.md`](docs/phase-6-hardening-assessment.md).
 
-### View Visual Research Dashboard
-Open the local interactive dashboard in any web browser:
-```bash
-open demo/index.html
-```
+### Step 6: Running the Interactive Demonstration & Dashboard (Phase 7)
+1. Run the fail-safe demonstration harness:
+   ```bash
+   # Run all demonstration modules sequentially:
+   ./demo/run_demo.sh --all
+
+   # Or run individual modules:
+   ./demo/run_demo.sh --demo-a   # Demonstration A: 7.1.3 baseline & relative copy simulation
+   ./demo/run_demo.sh --demo-b   # Demonstration B: 7.1.4 protections & relative copy exclusion
+   ./demo/run_demo.sh --demo-c   # Demonstration C: Upgrade lifecycle walkthrough & timing
+   ./demo/run_demo.sh --demo-d   # Demonstration D: Apache live configuration check & HTTP 403 assertions
+   ```
+2. Launch the visual research dashboard locally:
+   ```bash
+   open demo/index.html
+   ```
+
+### Step 7: Verifying Evidence Integrity (Phases 7.2 & 7.3)
+1. Verify SHA-256 cryptographic hashes for all evidence files:
+   ```bash
+   cd evidence/phase-7-2
+   shasum -a 256 -c logs/evidence-integrity-sha256.txt
+   ```
+2. Re-capture high-resolution screenshots if desired (requires Playwright):
+   ```bash
+   python3 demo/capture_screenshots.py
+   ```
+3. Review the complete catalog in [`evidence/phase-7-2/evidence-index.md`](evidence/phase-7-2/evidence-index.md).
 
 ---
 
