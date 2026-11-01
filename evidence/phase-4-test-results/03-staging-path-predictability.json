@@ -1,0 +1,40 @@
+{
+    "test": "Staging directory predictability",
+    "timestamp": "2026-11-01T05:26:14+00:00",
+    "package_tested": "wordpress.zip",
+    "7.1.3_sample_runs": [
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress",
+        "wordpress"
+    ],
+    "7.1.3_unique_count": 1,
+    "7.1.3_evaluation": "Deterministic (Predictable)",
+    "7.1.4_sample_runs": [
+        "wordpress-tl3YaIVvhkobyJVv",
+        "wordpress-3vhfGEIWHERcDqUc",
+        "wordpress-dOPEdnIhKav6HKyU",
+        "wordpress-eiTpcxd9vzEQOIzy",
+        "wordpress-WNBDpLIPd6NKeJgd",
+        "wordpress-CEnWactgPEaGWnY9",
+        "wordpress-Ep34OG5Fx1y7IQ3B",
+        "wordpress-lmT4KZqmiCJvDgPY",
+        "wordpress-4hWVR5nrGrF1VVdA",
+        "wordpress-GlJ4rMngxs9xKgGl"
+    ],
+    "7.1.4_unique_count": 10,
+    "7.1.4_evaluation": "Randomized (16-char alphanumeric suffix)",
+    "source_analysis": {
+        "function": "get_working_dir_name($package)",
+        "generator": "wp_generate_password(16, false)",
+        "prng_call": "wp_rand() -> random_int() with fallback to md5\/sha1 hash chain",
+        "entropy_basis": "62 characters (a-z, A-Z, 0-9) ^ 16 positions = ~4.76e28 theoretical possibilities",
+        "limitations": "Actual unpredictability depends on PHP random_int entropy source and CSPRNG availability on the host OS; observation of 16 characters does not itself guarantee absence of PRNG bias or seed weaknesses."
+    }
+}

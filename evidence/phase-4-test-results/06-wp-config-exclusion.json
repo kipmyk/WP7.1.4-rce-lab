@@ -1,0 +1,19 @@
+{
+    "test": "wp-config.php exclusion during file synchronization",
+    "timestamp": "2026-11-01T05:26:37+00:00",
+    "7.1.3_skip_list": [
+        "wp-content",
+        "wp-includes\/version.php"
+    ],
+    "7.1.3_wp_config_overwritten": true,
+    "7.1.3_result": "OVERWRITTEN (Vulnerable: Staged config copied into target)",
+    "7.1.4_skip_list": [
+        "wp-content",
+        "wp-includes\/version.php",
+        "wp-config.php"
+    ],
+    "7.1.4_wp_config_overwritten": false,
+    "7.1.4_result": "PROTECTED (Patched: wp-config.php excluded from copy)",
+    "final_dest_713_content": "<?php \/\/ BENIGN_TEST_DUMMY_CONFIG",
+    "final_dest_714_content": "<?php \/\/ LEGITIMATE_PRODUCTION_CONFIG"
+}

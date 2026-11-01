@@ -1,0 +1,8 @@
+{
+    "test": "Guard file preservation",
+    "timestamp": "2026-11-01T05:25:39+00:00",
+    "7.1.3_index_exists_after_cleanup": false,
+    "7.1.4_index_exists_after_cleanup": true,
+    "7.1.3_status": "DELETED (Vulnerable: index.php stripped)",
+    "7.1.4_status": "PRESERVED (Patched: index.php retained)"
+}

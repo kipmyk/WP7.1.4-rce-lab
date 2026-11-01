@@ -1,0 +1,13 @@
+Starting update...
+Unpacking the update...
+Cleaning up files...
+No old files were removed.
+Success: WordPress updated successfully.
+7.1.4
+HTTP/1.1 200 OK
+Date: Sun, 01 Nov 2026 05:30:05 GMT
+Server: Apache/2.4.69 (Debian)
+X-Powered-By: PHP/8.2.35
+Link: <http://127.0.0.1:8081/index.php?rest_route=/>; rel="https://api.w.org/"
+Content-Type: text/html; charset=UTF-8
+

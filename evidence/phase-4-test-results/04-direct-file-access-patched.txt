@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Sun, 01 Nov 2026 05:24:29 GMT
+Server: Apache/2.4.69 (Debian)
+Last-Modified: Sun, 01 Nov 2026 05:24:29 GMT
+ETag: W/"18-65f303e58c50b"
+Accept-Ranges: bytes
+Content-Length: 24
+Content-Type: text/plain
+
+BENIGN_STATIC_PROBE_714
