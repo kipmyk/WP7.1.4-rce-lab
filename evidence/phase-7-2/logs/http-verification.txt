@@ -1,0 +1,90 @@
+==============================================================================
+WordPress Security Lab: HTTP Verification Log
+Timestamp: 2026-11-01 06:51:47 UTC
+==============================================================================
+
+--- Target 1: WordPress 7.1.3 Baseline (http://127.0.0.1:8081/) ---
+HTTP/1.1 200 OK
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+X-Powered-By: PHP/8.2.35
+Link: <http://127.0.0.1:8081/index.php?rest_route=/>; rel="https://api.w.org/"
+Content-Type: text/html; charset=UTF-8
+
+
+--- Target 1: wp-admin Redirect Check ---
+HTTP/1.1 302 Found
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+X-Powered-By: PHP/8.2.35
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private
+X-Redirect-By: WordPress
+Location: http://127.0.0.1:8081/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A8081%2Fwp-admin%2F&reauth=1
+Content-Type: text/html; charset=UTF-8
+
+
+--- Target 1: Hardened Upgrade Directory Check ---
+HTTP/1.1 403 Forbidden
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+Content-Type: text/html; charset=iso-8859-1
+
+
+--- Target 2: WordPress 7.1.4 Baseline (http://127.0.0.1:8082/) ---
+HTTP/1.1 200 OK
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+X-Powered-By: PHP/8.2.35
+Link: <http://127.0.0.1:8082/index.php?rest_route=/>; rel="https://api.w.org/"
+Content-Type: text/html; charset=UTF-8
+
+
+--- Target 2: wp-admin Redirect Check ---
+HTTP/1.1 302 Found
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+X-Powered-By: PHP/8.2.35
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private
+X-Redirect-By: WordPress
+Location: http://127.0.0.1:8082/wp-login.php?redirect_to=http%3A%2F%2F127.0.0.1%3A8082%2Fwp-admin%2F&reauth=1
+Content-Type: text/html; charset=UTF-8
+
+
+--- Probe Verification on Target 1 with Hardening Active ---
+Static Probe Request: http://127.0.0.1:8081/wp-content/upgrade/probe.txt
+HTTP/1.1 403 Forbidden
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+Content-Length: 316
+Content-Type: text/html; charset=iso-8859-1
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>403 Forbidden</title>
+</head><body>
+<h1>Forbidden</h1>
+<p>You don't have permission to access this resource.</p>
+<hr>
+<address>Apache/2.4.69 (Debian) Server at 127.0.0.1 Port 8081</address>
+</body></html>
+
+PHP Probe Request: http://127.0.0.1:8081/wp-content/upgrade/probe.php
+HTTP/1.1 403 Forbidden
+Date: Sun, 01 Nov 2026 06:51:48 GMT
+Server: Apache/2.4.69 (Debian)
+Content-Length: 316
+Content-Type: text/html; charset=iso-8859-1
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>403 Forbidden</title>
+</head><body>
+<h1>Forbidden</h1>
+<p>You don't have permission to access this resource.</p>
+<hr>
+<address>Apache/2.4.69 (Debian) Server at 127.0.0.1 Port 8081</address>
+</body></html>
+
+Probes successfully cleaned up.
