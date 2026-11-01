@@ -1,0 +1,8 @@
+HTTP/1.1 403 Forbidden
+Server: nginx/1.31.8
+Date: Sun, 01 Nov 2026 05:57:48 GMT
+Content-Type: application/octet-stream
+Content-Length: 65
+Connection: keep-alive
+
+403 Forbidden: Upgrade directory access denied by server policy.
