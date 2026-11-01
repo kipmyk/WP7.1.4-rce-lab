@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Upgrade-Window Security Research (GHSA-4w3m-c66w-69mg & CVE-2026-119977)</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --vuln-color: #ef4444;
+            --patch-color: #10b981;
+            --warn-color: #f59e0b;
+            --blue-accent: #38bdf8;
+            --magenta-accent: #c084fc;
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --code-font: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            color: var(--blue-accent);
+        }
+
+        .meta-bar {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--text-muted);
+            align-items: center;
+        }
+
+        .badge {
+            background: #334155;
+            color: #cbd5e1;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .badge-live { background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5); }
+        .badge-simulated { background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5); }
+        .badge-source { background: rgba(56, 189, 248, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.5); }
+        .badge-historical { background: rgba(99, 102, 241, 0.25); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.5); }
+        .badge-static { background: rgba(192, 132, 252, 0.25); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.5); }
+        .badge-illustrative { background: rgba(148, 163, 184, 0.25); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.5); }
+        .badge-vuln { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-patch { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .disclaimer-card {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warn-color);
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+            color: #fde68a;
+        }
+
+        .legend-card {
+            background: #131d2e;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 800px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 17px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        code, pre {
+            font-family: var(--code-font);
+            font-size: 13px;
+        }
+
+        pre {
+            background: #090d16;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid #1e293b;
+            color: #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 13px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: #1e293b;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 10px 0;
+        }
+
+        .timeline-step {
+            display: flex;
+            margin-bottom: 14px;
+        }
+
+        .step-num {
+            width: 30px;
+            height: 30px;
+            background: var(--blue-accent);
+            color: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            background: #131d2e;
+            padding: 12px 16px;
+            border-radius: 6px;
+            flex-grow: 1;
+            border: 1px solid var(--border);
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timing-pill {
+            display: inline-block;
+            background: #22344d;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--blue-accent);
+            margin-top: 6px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>WordPress Upgrade-Window Security Research Dashboard</h1>
+        <div class="meta-bar">
+            <span>WordPress Advisory: <strong>GHSA-4w3m-c66w-69mg</strong> <span class="badge">Low (No CVSS)</span></span>
+            <span>Wordfence Entry: <strong>CVE-2026-119977</strong> <span class="badge badge-vuln">CVSS 8.1 High (CWE-367)</span></span>
+            <span>Target: <strong>WordPress 7.1.3 vs. 7.1.4</strong></span>
+            <span>Environment: <strong>Local Docker Lab (127.0.0.1)</strong></span>
+        </div>
+    </header>
+
+    <div class="disclaimer-card">
+        <strong>Advisory Attribution & Severity Note:</strong> The WordPress GitHub Security Advisory GHSA-4w3m-c66w-69mg classifies this issue as Low severity and does not publish a CVSS score. Wordfence subsequently assigned CVE-2026-119977 with a CVSS 3.1 score of 8.1 (High), identifying CWE-367. These ratings are source-specific and reported separately. The behaviors demonstrated here do not independently establish successful remote code execution.
+    </div>
+
+    <!-- Evidence Classification Legend -->
+    <div class="legend-card">
+        <strong style="color:#e2e8f0;">Evidence Classification Key:</strong>
+        <span><span class="badge badge-live">LIVE</span> Executed currently against local environment</span>
+        <span><span class="badge badge-simulated">SIMULATED</span> Shell / filesystem reproduction</span>
+        <span><span class="badge badge-source">SOURCE-VERIFIED</span> Confirmed in WordPress core source</span>
+        <span><span class="badge badge-historical">HISTORICAL</span> Collected in Phases 4, 5, or 6</span>
+        <span><span class="badge badge-static">STATIC ANALYSIS</span> Configuration syntax review only</span>
+        <span><span class="badge badge-illustrative">ILLUSTRATIVE</span> Example representative values</span>
+    </div>
+
+    <!-- Side-by-Side Comparison -->
+    <div class="grid-2">
+        <div class="card">
+            <h2>
+                <span>WordPress 7.1.3</span>
+                <span class="badge badge-vuln">Vulnerable Baseline</span>
+            </h2>
+            
+            <p>
+                <strong>Staging Directory Path:</strong>
+                <span class="badge badge-source">SOURCE-VERIFIED</span>
+            </p>
+            <pre>wp-content/upgrade/wordpress/</pre>
+            <p><small style="color:var(--text-muted)">Predictable for the tested <code>wordpress.zip</code> package name (derived from package filename, not hardcoded by core).</small></p>
+
+            <p>
+                <strong>Guard File Cleanup:</strong>
+                <span class="badge badge-simulated">SIMULATED</span>
+            </p>
+            <p><span class="badge badge-vuln">Guard Stripped</span> <code>clean_working_dir()</code> unconditionally deletes all files, including <code>index.php</code>, exposing directory listing if web server is unhardened.</p>
+
+            <p>
+                <strong>File Promotion Boundary:</strong>
+                <span class="badge badge-simulated">SIMULATED</span>
+            </p>
+            <pre>$skip = array( 'wp-content', 'wp-includes/version.php' );</pre>
+            <p><small style="color:var(--text-muted)">Missing exclusion rule. Relative-path sync models nested rules; staged <code>wp-config.php</code> is promoted into production root.</small></p>
+
+            <p style="font-size:12px; color:var(--text-muted); border-top:1px solid #334155; padding-top:8px; margin-top:12px;">
+                <em>Note: Pre-unpack cleanup and configuration overwrite demonstrations are filesystem simulations of source logic, not active WordPress update captures.</em>
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>
+                <span>WordPress 7.1.4</span>
+                <span class="badge badge-patch">Patched Protections</span>
+            </h2>
+
+            <p>
+                <strong>Staging Directory Path:</strong>
+                <span class="badge badge-source">SOURCE-VERIFIED</span>
+            </p>
+            <pre>wp-content/upgrade/wordpress-weIdh9kF3Kd71Nkj/</pre>
+            <p><small style="color:var(--text-muted)">Appends 16-character pseudo-random alphanumeric suffix via <code>get_working_dir_name()</code>. <span class="badge badge-illustrative">ILLUSTRATIVE</span> token shown.</small></p>
+
+            <p>
+                <strong>Guard File Cleanup:</strong>
+                <span class="badge badge-simulated">SIMULATED</span>
+            </p>
+            <p><span class="badge badge-patch">Guard Preserved & Auto-Created</span> Preserves existing <code>index.php</code> during pre-unpack cleanup and auto-generates empty guard file if absent.</p>
+
+            <p>
+                <strong>File Promotion Boundary:</strong>
+                <span class="badge badge-simulated">SIMULATED</span>
+            </p>
+            <pre>$skip = array( 'wp-content', 'wp-includes/version.php', 'wp-config.php' );</pre>
+            <p><small style="color:var(--text-muted)">Explicit exclusion rule. Staged <code>wp-config.php</code> is strictly dropped by relative-path sync, preserving existing production config.</small></p>
+
+            <p style="font-size:12px; color:var(--text-muted); border-top:1px solid #334155; padding-top:8px; margin-top:12px;">
+                <em>Note: Token strings are illustrative; WordPress core calls wp_generate_password(16, false) in production runtime.</em>
+            </p>
+        </div>
+    </div>
+
+    <!-- Lifecycle Walkthrough -->
+    <div class="card" style="margin-bottom:28px;">
+        <h2>
+            <span>Core Upgrade Lifecycle & Observed Window</span>
+            <span class="badge badge-historical">HISTORICAL TELEMETRY</span>
+        </h2>
+        
+        <div class="disclaimer-card" style="margin-bottom:16px;">
+            <strong>Hardware & Environment Disclaimer:</strong> Lifespan measurements (~11–12 seconds) represent HISTORICAL telemetry captured during Phase 5 testing in this specific local Docker research lab (macOS ARM64, Colima/VZ virtualization, 9p/virtiofs filesystem bridge). Staging lifespans on bare-metal production servers, fast NVMe drives, or network-attached storage may vary significantly and do not represent guaranteed attack windows.
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">
+                        <span>Package Download & Verification</span>
+                        <span class="badge badge-source">SOURCE-VERIFIED</span>
+                    </div>
+                    <div style="color:var(--text-muted); font-size:13px;">WordPress downloads update zip and verifies digital signatures. Pre-unpack cleanup begins.</div>
+                </div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">
+                        <span>Staging Directory Creation & Extraction</span>
+                        <span class="badge badge-historical">HISTORICAL TELEMETRY</span>
+                    </div>
+                    <div style="color:var(--text-muted); font-size:13px;">Unpack initiates. Distribution files (including <code>setup-config.php</code>) appear on disk at +700–800ms.</div>
+                    <div class="timing-pill">Transient Staging Window Opens</div>
+                </div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">
+                        <span>File Synchronization (copy_dir)</span>
+                        <span class="badge badge-source">SOURCE-VERIFIED</span>
+                    </div>
+                    <div style="color:var(--text-muted); font-size:13px;">Files are synchronized from staging folder into site root. 7.1.3 syncs all files; 7.1.4 skips <code>wp-config.php</code>.</div>
+                </div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="step-title">
+                        <span>Cleanup & Finalization</span>
+                        <span class="badge badge-historical">HISTORICAL TELEMETRY</span>
+                    </div>
+                    <div style="color:var(--text-muted); font-size:13px;">Staging directory is deleted; site exits maintenance mode.</div>
+                    <div class="timing-pill">Observed Staging Lifespan: ~12.33s (7.1.3) / ~11.32s (7.1.4) in Docker lab</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Server-Level Hardening Assessment -->
+    <div class="card">
+        <h2>
+            <span>Server-Level Hardening & Defense-in-Depth Assessment</span>
+            <span class="badge">Perimeter Controls</span>
+        </h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Server Environment</th>
+                    <th>Direct Directory Request</th>
+                    <th>Direct PHP Probe Request</th>
+                    <th>Core Update Compatibility</th>
+                    <th>Evidence Classification</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Apache 2.4.69</strong><br><small style="color:var(--text-muted)">Require all denied / Options -Indexes (Active in runtime tree)</small></td>
+                    <td><span class="badge badge-patch">HTTP 403</span></td>
+                    <td><span class="badge badge-patch">HTTP 403</span></td>
+                    <td><span class="badge badge-patch">Pass (WP-CLI Update)</span></td>
+                    <td><span class="badge badge-live">LIVE (ASSERTION VERIFIED)</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Nginx 1.31.8</strong><br><small style="color:var(--text-muted)">location ^~ /wp-content/upgrade/</small></td>
+                    <td><span class="badge badge-patch">HTTP 403</span></td>
+                    <td><span class="badge badge-patch">HTTP 403</span></td>
+                    <td><span class="badge badge-patch">Pass (Local I/O Unaffected)</span></td>
+                    <td><span class="badge badge-historical">HISTORICAL (PHASE 6 CONTAINER)</span></td>
+                </tr>
+                <tr>
+                    <td><strong>OpenLiteSpeed</strong><br><small style="color:var(--text-muted)">context type NULL / accessible no</small></td>
+                    <td><span class="badge badge-static">Rule-Based 403</span></td>
+                    <td><span class="badge badge-static">LSPHP Bypassed by Policy</span></td>
+                    <td><span class="badge badge-static">Compatible (Local I/O)</span></td>
+                    <td><span class="badge badge-static">STATIC ANALYSIS ONLY</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size:12px; color:var(--text-muted); margin:0;">
+            * Defense-in-Depth Scope Notice: Active Apache configuration was verified loaded via container runtime (<code>apache2ctl -t -D DUMP_INCLUDES</code>). These tests prove that the tested HTTP paths are blocked under this server configuration; they provide perimeter defense-in-depth and do not imply universal application mitigation across all hosting environments.
+        </p>
+    </div>
+
+    <div class="footer">
+        WordPress 7.1.4 Security Research Lab &bull; Educational and Defensive Research &bull; Watermarked for Research Archiving: <code>@mike.co.ke</code>
+    </div>
+</div>
+
+</body>
+</html>
