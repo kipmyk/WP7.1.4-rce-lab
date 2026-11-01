@@ -63,7 +63,8 @@
 | **50** | Repository Governance | `9622faa` | `docs: add standalone security research disclaimer` | `DISCLAIMER.md` |
 | **51** | Repository Governance | `5cd95ce` | `docs: add project license` | `LICENSE` |
 | **52** | Repository Governance | `bf6ae89` | `docs: add project README and research overview` | `README.md` |
-| **53** | Repository Governance | *pending* | `docs: add chronological Git commit audit` | `docs/git-commit-audit.md` |
+| **53** | Repository Governance | `e757475` | `docs: add chronological Git commit audit` | `docs/git-commit-audit.md` |
+| **54** | Repository Governance | `pending` | `docs: finalize audit manifest with commit hash` | `docs/git-commit-audit.md` |
 
 ---
 
