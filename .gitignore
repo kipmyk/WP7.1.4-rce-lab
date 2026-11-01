@@ -1,0 +1,39 @@
+# Operating System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# Live WordPress Application Data (Runtime Webroots)
+/vulnerable/html/
+/patched/html/
+
+# Upstream Release Binary Packages (Tracked via evidence/checksums.txt)
+/vulnerable/*.zip
+/patched/*.zip
+
+# Full Backups and Database Dumps (Contain dynamic credentials and hashes)
+/backups/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+
+# Runtime Temporary Files and Probes
+/demo/mock_*
+*.tmp
+*.log
+!evidence/**/*.log
+!evidence/**/*.txt
+
+# Explicitly un-ignore project tests (overriding user global gitignore)
+!/tests/
+!/tests/**
