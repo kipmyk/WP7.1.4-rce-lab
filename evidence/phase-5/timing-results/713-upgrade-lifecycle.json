@@ -1,0 +1,36 @@
+[
+    {
+        "time": 1793511639.690394,
+        "iso": "2026-11-01T05:40:39+00:00",
+        "event": "OBSERVER_STARTED",
+        "upgrade_dir": "\/Users\/mac\/Code\/Security\/WP7.1.4-rce-lab\/vulnerable\/html\/wp-content\/upgrade"
+    },
+    {
+        "time": 1793511643.966226,
+        "iso": "2026-11-01T05:40:43+00:00",
+        "event": "STAGING_DIR_CREATED",
+        "dir_name": "test-update",
+        "full_path": "\/Users\/mac\/Code\/Security\/WP7.1.4-rce-lab\/vulnerable\/html\/wp-content\/upgrade\/test-update",
+        "elapsed_since_start_ms": 4275.83
+    },
+    {
+        "time": 1793511644.782837,
+        "iso": "2026-11-01T05:40:44+00:00",
+        "event": "SETUP_CONFIG_DETECTED",
+        "path": "\/Users\/mac\/Code\/Security\/WP7.1.4-rce-lab\/vulnerable\/html\/wp-content\/upgrade\/test-update\/wordpress\/wp-admin\/setup-config.php",
+        "elapsed_since_dir_created_ms": 816.61
+    },
+    {
+        "time": 1793511656.297118,
+        "iso": "2026-11-01T05:40:56+00:00",
+        "event": "STAGING_DIR_DELETED",
+        "dir_name": "test-update",
+        "total_lifespan_ms": 12330.89
+    },
+    {
+        "time": 1793511656.297126,
+        "iso": "2026-11-01T05:40:56+00:00",
+        "event": "OBSERVER_FINISHED",
+        "total_observed_lifespan_ms": 12330.89
+    }
+]
